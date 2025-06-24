@@ -56,20 +56,93 @@ class DiagnosaController extends Controller
      * @param  \App\Http\Requests\StoreDiagnosaRequest  $request
      * @return \Illuminate\Http\Response
      */
+    // public function store(StoreDiagnosaRequest $request)
+    // {
+    //     $filteredArray = $request->post('kondisi');
+    //     $kondisi = array_filter($filteredArray, function ($value) {
+    //         return $value !== null;
+    //     });
+
+    //     // dd($kondisi);
+    //     $kodeGejala = [];
+    //     $bobotPilihan = [];
+    //     foreach ($kondisi as $key => $val) {
+    //         if ($val != "#") {
+    //             echo "key : $key, val : $val";
+    //             echo "<br>";
+    //             array_push($kodeGejala, $key);
+    //             array_push($bobotPilihan, array($key, $val));
+    //         }
+    //     }
+
+    //     $depresi = TingkatDepresi::all();
+    //     $cf = 0;
+    //     // penyakit
+    //     $arrGejala = [];
+    //     for ($i = 0; $i < count($depresi); $i++) {
+    //         $cfArr = [
+    //             "cf" => [],
+    //             "kode_depresi" => []
+    //         ];
+    //         $res = 0;
+    //         $ruleSetiapDepresi = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_depresi", $depresi[$i]->kode_depresi)->get();
+    //         // dd($ruleSetiapDepresi);
+    //         if (count($ruleSetiapDepresi) > 0) {
+    //             foreach ($ruleSetiapDepresi as $ruleKey) {
+    //                 $cf = $ruleKey->mb - $ruleKey->md;
+    //                 array_push($cfArr["cf"], $cf);
+    //                 array_push($cfArr["kode_depresi"], $ruleKey->kode_depresi);
+    //             }
+    //             $res = $this->getGabunganCf($cfArr);
+    //             // dd($res);
+    //             // print "<br> res : $res <br>";
+    //             array_push($arrGejala, $res);
+    //         } else {
+    //             continue;
+    //         }
+    //     }
+    //     // dd($arrGejala);
+    //     // echo "<br> arrGejala : ";
+    //     // print_r($arrGejala);
+    //     // echo "<br>";
+
+    //     $diagnosa_id = uniqid();
+    //     $ins =  Diagnosa::create([
+    //         'diagnosa_id' => strval($diagnosa_id),
+    //         'data_diagnosa' => json_encode($arrGejala),
+    //         'kondisi' => json_encode($bobotPilihan)
+    //     ]);
+    //     // dd($ins);
+    //     return redirect()->route('spk.result', ["diagnosa_id" => $diagnosa_id]);
+    // }
     public function store(StoreDiagnosaRequest $request)
     {
+        // 1. Simpan Alternatif (data diri)
+        $request->validate([
+            'nama' => 'required|string|max:100',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
+            'tanggal_lahir' => 'required|date',
+        ]);
+
+        $usia = \Carbon\Carbon::parse($request->tanggal_lahir)->age;
+
+        $alternatif = \App\Models\Alternatif::create([
+            'nama' => $request->nama,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'usia' => $usia,
+        ]);
+
+        // 2. Ambil dan proses input kondisi gejala
         $filteredArray = $request->post('kondisi');
         $kondisi = array_filter($filteredArray, function ($value) {
             return $value !== null;
         });
 
-        // dd($kondisi);
         $kodeGejala = [];
         $bobotPilihan = [];
         foreach ($kondisi as $key => $val) {
             if ($val != "#") {
-                echo "key : $key, val : $val";
-                echo "<br>";
                 array_push($kodeGejala, $key);
                 array_push($bobotPilihan, array($key, $val));
             }
@@ -77,16 +150,19 @@ class DiagnosaController extends Controller
 
         $depresi = TingkatDepresi::all();
         $cf = 0;
-        // penyakit
         $arrGejala = [];
+
         for ($i = 0; $i < count($depresi); $i++) {
             $cfArr = [
                 "cf" => [],
                 "kode_depresi" => []
             ];
             $res = 0;
-            $ruleSetiapDepresi = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_depresi", $depresi[$i]->kode_depresi)->get();
-            // dd($ruleSetiapDepresi);
+
+            $ruleSetiapDepresi = Keputusan::whereIn("kode_gejala", $kodeGejala)
+                ->where("kode_depresi", $depresi[$i]->kode_depresi)
+                ->get();
+
             if (count($ruleSetiapDepresi) > 0) {
                 foreach ($ruleSetiapDepresi as $ruleKey) {
                     $cf = $ruleKey->mb - $ruleKey->md;
@@ -94,27 +170,24 @@ class DiagnosaController extends Controller
                     array_push($cfArr["kode_depresi"], $ruleKey->kode_depresi);
                 }
                 $res = $this->getGabunganCf($cfArr);
-                // dd($res);
-                // print "<br> res : $res <br>";
                 array_push($arrGejala, $res);
             } else {
                 continue;
             }
         }
-        // dd($arrGejala);
-        // echo "<br> arrGejala : ";
-        // print_r($arrGejala);
-        // echo "<br>";
 
+        // 3. Simpan hasil diagnosa
         $diagnosa_id = uniqid();
-        $ins =  Diagnosa::create([
-            'diagnosa_id' => strval($diagnosa_id),
+        Diagnosa::create([
+            'diagnosa_id' => $diagnosa_id,
+            'alternatif_id' => $alternatif->id, // Hubungkan diagnosa dengan data alternatif
             'data_diagnosa' => json_encode($arrGejala),
             'kondisi' => json_encode($bobotPilihan)
         ]);
-        // dd($ins);
+
         return redirect()->route('spk.result', ["diagnosa_id" => $diagnosa_id]);
     }
+
 
     public function getGabunganCf($cfArr)
     {

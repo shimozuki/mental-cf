@@ -37,16 +37,19 @@ class GejalaController extends Controller
      */
     public function store(StoreGejalaRequest $request)
     {
-        // dd($request->all());
         $valid = $request->validate([
-            "kode_gejala" => 'required|unique:gejala,kode_gejala',
-            'gejala' => 'required|unique:gejala,gejala'
+            'kode_gejala' => 'required|unique:gejala,kode_gejala',
+            'gejala' => 'required|unique:gejala,gejala',
+            'rentang_usia' => 'required|in:4-10,11-18',
         ]);
+
         Gejala::create($valid);
+
         return redirect()->route('gejala.index')->with('pesan', '<div class="alert alert-success p-3 mt-3" role="alert">
         Gejala telah ditambahkan
-        </div>');
+    </div>');
     }
+
 
     /**
      * Display the specified resource.

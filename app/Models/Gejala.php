@@ -10,12 +10,10 @@ class Gejala extends Model
     use HasFactory;
     protected $table = 'gejala';
     protected $guard = ["id"];
-    protected $fillable = ["kode_gejala", "gejala"];
+    protected $fillable = ["kode_gejala", "gejala", "rentang_usia"];
 
     public function fillTable()
     {
-
-
         $gejala2 = [
             [
                 "kode_gejala" => "G001",
