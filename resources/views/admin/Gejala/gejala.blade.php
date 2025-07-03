@@ -31,6 +31,7 @@
                         <th scope="col">Kode Gejala</th>
                         <th scope="col">Gejala</th>
                         <th scope="col">Rentang Usia</th>
+                        <th scope="col1">Kategori Gejala</th>
                         <th scope="col">Aksi</th>
                     </tr>
                 </thead>
@@ -42,9 +43,24 @@
                         <td>{{$item->gejala}}</td>
                         <td>{{$item->rentang_usia}}</td>
                         <td>
-                            <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="updateInput('{{ $item->id }}', '{{ $item->kode_gejala }}', '{{ $item->gejala }}', '{{ $item->rentang_usia }}'); actionUbahGejala('/gejala/{{ $item->id }}')">
+                            {{ $item->kategori_sdq }}
+
+                        <td>
+                            <button
+                                class="btn btn-outline-info"
+                                data-bs-toggle="modal"
+                                data-bs-target="#exampleModal"
+                                onclick="updateInput(
+                                '{{ $item->id }}',
+                                '{{ $item->kode_gejala }}',
+                                '{{ $item->gejala }}',
+                                '{{ $item->rentang_usia }}',
+                                '{{ $item->kategori_sdq }}'
+                            ); actionUbahGejala('/gejala/{{ $item->id }}')">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
+
+
                             <form action="/gejala/{{ $item->id }}" method="post" class="d-inline">
                                 @method('delete')
                                 @csrf

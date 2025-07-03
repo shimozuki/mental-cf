@@ -11,5 +11,16 @@ class Diagnosa extends Model
     protected $table = 'diagnosas';
 
     protected $guard = ["id"];
-    protected $fillable = ["diagnosa_id", "data_diagnosa", "kondisi"];
+    protected $fillable = [
+        'diagnosa_id',
+        'nama',
+        'jenis_kelamin',
+        'pengisi',
+        'usia',
+        'data_diagnosa',
+        'total_score',
+        'klasifikasi',
+        'kondisi',
+        'alternatif_id',
+    ];
 }

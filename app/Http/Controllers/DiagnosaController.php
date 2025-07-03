@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Diagnosa;
 use App\Http\Requests\StoreDiagnosaRequest;
 use App\Http\Requests\UpdateDiagnosaRequest;
+use App\Models\Alternatif;
 use App\Models\Artikel;
 use App\Models\Gejala;
 use App\Models\Keputusan;
@@ -15,6 +16,8 @@ use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 use function PHPSTORM_META\map;
 use function PHPSTORM_META\type;
@@ -50,237 +53,239 @@ class DiagnosaController extends Controller
         return view('clients.form_diagnosa', $data);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreDiagnosaRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    // public function store(StoreDiagnosaRequest $request)
-    // {
-    //     $filteredArray = $request->post('kondisi');
-    //     $kondisi = array_filter($filteredArray, function ($value) {
-    //         return $value !== null;
-    //     });
-
-    //     // dd($kondisi);
-    //     $kodeGejala = [];
-    //     $bobotPilihan = [];
-    //     foreach ($kondisi as $key => $val) {
-    //         if ($val != "#") {
-    //             echo "key : $key, val : $val";
-    //             echo "<br>";
-    //             array_push($kodeGejala, $key);
-    //             array_push($bobotPilihan, array($key, $val));
-    //         }
-    //     }
-
-    //     $depresi = TingkatDepresi::all();
-    //     $cf = 0;
-    //     // penyakit
-    //     $arrGejala = [];
-    //     for ($i = 0; $i < count($depresi); $i++) {
-    //         $cfArr = [
-    //             "cf" => [],
-    //             "kode_depresi" => []
-    //         ];
-    //         $res = 0;
-    //         $ruleSetiapDepresi = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_depresi", $depresi[$i]->kode_depresi)->get();
-    //         // dd($ruleSetiapDepresi);
-    //         if (count($ruleSetiapDepresi) > 0) {
-    //             foreach ($ruleSetiapDepresi as $ruleKey) {
-    //                 $cf = $ruleKey->mb - $ruleKey->md;
-    //                 array_push($cfArr["cf"], $cf);
-    //                 array_push($cfArr["kode_depresi"], $ruleKey->kode_depresi);
-    //             }
-    //             $res = $this->getGabunganCf($cfArr);
-    //             // dd($res);
-    //             // print "<br> res : $res <br>";
-    //             array_push($arrGejala, $res);
-    //         } else {
-    //             continue;
-    //         }
-    //     }
-    //     // dd($arrGejala);
-    //     // echo "<br> arrGejala : ";
-    //     // print_r($arrGejala);
-    //     // echo "<br>";
-
-    //     $diagnosa_id = uniqid();
-    //     $ins =  Diagnosa::create([
-    //         'diagnosa_id' => strval($diagnosa_id),
-    //         'data_diagnosa' => json_encode($arrGejala),
-    //         'kondisi' => json_encode($bobotPilihan)
-    //     ]);
-    //     // dd($ins);
-    //     return redirect()->route('spk.result', ["diagnosa_id" => $diagnosa_id]);
-    // }
     public function store(StoreDiagnosaRequest $request)
     {
-        // 1. Simpan Alternatif (data diri)
-        $request->validate([
-            'nama' => 'required|string|max:100',
-            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
-            'tanggal_lahir' => 'required|date',
-        ]);
-
-        $usia = \Carbon\Carbon::parse($request->tanggal_lahir)->age;
-
-        $alternatif = \App\Models\Alternatif::create([
+        $usia = Carbon::parse($request->tanggal_lahir)->age;
+        $alternatif = Alternatif::create([
             'nama' => $request->nama,
             'jenis_kelamin' => $request->jenis_kelamin,
             'tanggal_lahir' => $request->tanggal_lahir,
             'usia' => $usia,
+            'pengisi' => $request->pengisi, // tambahkan jika kolom ini ada
         ]);
 
         // 2. Ambil dan proses input kondisi gejala
-        $filteredArray = $request->post('kondisi');
+        $filteredArray = $request->post('kondisi') ?? [];
+
         $kondisi = array_filter($filteredArray, function ($value) {
-            return $value !== null;
+            return $value !== null && $value !== '#' && floatval($value) > 0;
         });
+
 
         $kodeGejala = [];
         $bobotPilihan = [];
         foreach ($kondisi as $key => $val) {
             if ($val != "#") {
                 array_push($kodeGejala, $key);
-                array_push($bobotPilihan, array($key, $val));
+                array_push($bobotPilihan, [$key, $val]);
             }
         }
 
+        // 3. Proses CF
         $depresi = TingkatDepresi::all();
-        $cf = 0;
         $arrGejala = [];
 
-        for ($i = 0; $i < count($depresi); $i++) {
-            $cfArr = [
-                "cf" => [],
-                "kode_depresi" => []
-            ];
-            $res = 0;
+        foreach ($depresi as $dep) {
+            $cfArr = ["cf" => [], "kode_depresi" => []];
+            $rules = Keputusan::whereIn("kode_gejala", $kodeGejala)
+                ->where("kode_depresi", $dep->kode_depresi)->get();
 
-            $ruleSetiapDepresi = Keputusan::whereIn("kode_gejala", $kodeGejala)
-                ->where("kode_depresi", $depresi[$i]->kode_depresi)
-                ->get();
+            if ($rules->count() > 0) {
+                foreach ($rules as $rule) {
+                    $bobot = collect($bobotPilihan)->firstWhere(0, $rule->kode_gejala)[1] ?? 0;
+                    if ($bobot > 0) {
+                        $cf = ($rule->mb - $rule->md) * floatval($bobot);
+                        $cfArr["cf"][] = $cf;
+                        $cfArr["kode_depresi"][] = $rule->kode_depresi;
+                    }
+                }
 
-            if (count($ruleSetiapDepresi) > 0) {
-                foreach ($ruleSetiapDepresi as $ruleKey) {
-                    $cf = $ruleKey->mb - $ruleKey->md;
-                    array_push($cfArr["cf"], $cf);
-                    array_push($cfArr["kode_depresi"], $ruleKey->kode_depresi);
+                if (count($cfArr["cf"]) === 0) {
+                    continue; // tidak ada gejala valid
                 }
                 $res = $this->getGabunganCf($cfArr);
-                array_push($arrGejala, $res);
-            } else {
-                continue;
+
+                $arrGejala[] = [
+                    'kode_depresi' => $res['kode_depresi'],
+                    'nilai_cf' => round(floatval($res['value']) * 100, 2)
+                ];
             }
         }
 
-        // 3. Simpan hasil diagnosa
+        // 4. Hitung skor SDQ (dummy — nanti bisa dari mapping kode_gejala)
+        $skor = [
+            'gejala_emosional' => 0,
+            'masalah_prilaku' => 0,
+            'hiperaktivitas' => 0,
+            'masalah_teman' => 0,
+            'prososial' => 0,
+        ];
+
+        foreach ($bobotPilihan as [$kode, $nilai]) {
+            $gejala = \App\Models\Gejala::where('kode_gejala', $kode)->first();
+            if ($gejala && $gejala->kategori_sdq && isset($skor[$gejala->kategori_sdq])) {
+                $skor[$gejala->kategori_sdq] += (int)$nilai;
+            }
+        }
+
+        $klasifikasi = [];
+        foreach ($skor as $key => $nilai) {
+            $klasifikasi[$key] = $this->klasifikasiSkor($key, $usia, $nilai);
+        }
+
+        $total_skor = $skor['gejala_emosional'] + $skor['masalah_prilaku'] + $skor['hiperaktivitas'] + $skor['masalah_teman'] + $skor['prososial']; // <- tambahkan ini
+        $total_klasifikasi = $this->klasifikasiTotalKesulitan($usia, $total_skor);
+        $klasifikasi['total'] = $total_klasifikasi;
+
+        // 5. Simpan hasil diagnosa
         $diagnosa_id = uniqid();
         Diagnosa::create([
             'diagnosa_id' => $diagnosa_id,
-            'alternatif_id' => $alternatif->id, // Hubungkan diagnosa dengan data alternatif
+            'alternatif_id' => $alternatif->id,
+            'usia' => $usia,
             'data_diagnosa' => json_encode($arrGejala),
+            'total_score' => json_encode($skor),
+            'klasifikasi' => json_encode($klasifikasi),
             'kondisi' => json_encode($bobotPilihan)
         ]);
 
-        return redirect()->route('spk.result', ["diagnosa_id" => $diagnosa_id]);
+
+        return redirect()->route('spk.hasil', $diagnosa_id);
     }
+
+    public function hasilSkrining($diagnosa_id)
+    {
+        $diagnosa = Diagnosa::where('diagnosa_id', $diagnosa_id)->firstOrFail();
+        $alternatif = Alternatif::findOrFail($diagnosa->alternatif_id);
+
+        $data_diagnosa = json_decode($diagnosa->data_diagnosa, true) ?? [];
+        $skor = json_decode($diagnosa->total_score, true) ?? [];
+        $klasifikasi = json_decode($diagnosa->klasifikasi, true) ?? [];
+
+        return view('hasil_skrining', [
+            'diagnosa' => $diagnosa,
+            'alternatif' => $alternatif, // <-- ini penting
+            'data_diagnosa' => $data_diagnosa,
+            'skor' => $skor,
+            'klasifikasi' => $klasifikasi
+        ]);
+    }
+
+
 
 
     public function getGabunganCf($cfArr)
     {
-        // if ($cfArr["kode_depresi"][0] == "P004") {
-        //     # code...
-        //     dd($cfArr);
-        // }
-        // echo "<br> cfArr : ";
-        // print_r($cfArr);
-        // echo "<br>";
-        // dd($cfArr);
-        if (!$cfArr["cf"]) {
-            return 0;
+        if (empty($cfArr["cf"])) {
+            return [
+                "value" => 0,
+                "kode_depresi" => null
+            ];
         }
+
         if (count($cfArr["cf"]) == 1) {
             return [
                 "value" => strval($cfArr["cf"][0]),
-                "kode_depresi" => $cfArr["kode_depresi"][0]
+                "kode_depresi" => $cfArr["kode_depresi"][0] ?? null // <- aman
             ];
         }
 
         $cfoldGabungan = $cfArr["cf"][0];
 
-        // foreach ($cfArr["cf"] as $cf) {
-        //     $cfoldGabungan = $cfoldGabungan + ($cf * (1 - $cfoldGabungan));
-        // }
-
         for ($i = 0; $i < count($cfArr["cf"]) - 1; $i++) {
             $cfoldGabungan = $cfoldGabungan + ($cfArr["cf"][$i + 1] * (1 - $cfoldGabungan));
         }
 
-
         return [
             "value" => "$cfoldGabungan",
-            "kode_depresi" => $cfArr["kode_depresi"][0]
+            "kode_depresi" => $cfArr["kode_depresi"][0] ?? null // <- aman
         ];
     }
 
+    private function getCfCombinasi($pakar, $user)
+    {
+        $cfComb = [];
+        if (count($pakar) == count($user)) {
+            for ($i = 0; $i < count($pakar); $i++) {
+                $res = $pakar[$i] * $user[$i];
+                $cfComb[] = floatval($res);
+            }
+
+            return [
+                "cf" => $cfComb,
+                "kode_depresi" => ["0"] // nilai default
+            ];
+        }
+
+        return [
+            "cf" => [],
+            "kode_depresi" => ["0"]
+        ];
+    }
+
+
+
     public function diagnosaResult($diagnosa_id)
     {
-        $diagnosa = Diagnosa::where('diagnosa_id', $diagnosa_id)->first();
+        $diagnosa = Diagnosa::where('diagnosa_id', $diagnosa_id)->firstOrFail();
         $gejala = json_decode($diagnosa->kondisi, true);
         $data_diagnosa = json_decode($diagnosa->data_diagnosa, true);
-        // dd($data_diagnosa);
+
+        // Diagnosa utama
         $int = 0.0;
         $diagnosa_dipilih = [];
         foreach ($data_diagnosa as $val) {
-            // print_r(floatval($val["value"]));
-            if (floatval($val["value"]) > $int) {
-                $diagnosa_dipilih["value"] = floatval($val["value"]);
+            if (floatval($val["nilai_cf"]) > $int) {
+                $diagnosa_dipilih["nilai_cf"] = floatval($val["nilai_cf"]);
                 $diagnosa_dipilih["kode_depresi"] = TingkatDepresi::where("kode_depresi", $val["kode_depresi"])->first();
-                $int = floatval($val["value"]);
+                $int = floatval($val["nilai_cf"]);
             }
         }
-        // dd($diagnosa_dipilih);
-        // dd($gejala);
 
-        $kodeGejala = [];
-        foreach ($gejala as $key) {
-            array_push($kodeGejala, $key[0]);
+        if (!isset($diagnosa_dipilih["kode_depresi"])) {
+            return back()->with("error", "Data diagnosa tidak valid. Silakan ulangi proses diagnosa.");
         }
-        // dd($kodeGejala);
-        $kode_depresi = $diagnosa_dipilih["kode_depresi"]->kode_depresi;
-        $pakar = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_depresi", $kode_depresi)->get();
-        // dd($pakar);
+
+        // Data gejala user
+        $kodeGejala = collect($gejala)->pluck(0)->all();
+        $pakar = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_depresi", $diagnosa_dipilih["kode_depresi"]->kode_depresi)->get();
+
         $gejala_by_user = [];
         foreach ($pakar as $key) {
-            $i = 0;
             foreach ($gejala as $gKey) {
                 if ($gKey[0] == $key->kode_gejala) {
-                    array_push($gejala_by_user, $gKey);
+                    $gejala_by_user[] = $gKey;
                 }
             }
         }
-        // dd($gejala_by_user);
 
-        $nilaiPakar = [];
-        foreach ($pakar as $key) {
-            array_push($nilaiPakar, ($key->mb - $key->md));
-        }
-        $nilaiUser = [];
-        foreach ($gejala_by_user as $key) {
-            array_push($nilaiUser, $key[1]);
-        }
-        // dd($nilaiPakar);
-        // dd($nilaiUser);
+        $nilaiPakar = collect($pakar)->map(fn($item) => $item->mb - $item->md)->all();
+        $nilaiUser = collect($gejala_by_user)->pluck(1)->all();
 
         $cfKombinasi = $this->getCfCombinasi($nilaiPakar, $nilaiUser);
-        // dd($cfKombinasi);
         $hasil = $this->getGabunganCf($cfKombinasi);
-        // dd($hasil);
+        $artikel = Artikel::where('kode_depresi', $diagnosa_dipilih["kode_depresi"]->kode_depresi)->first();
 
-        $artikel = Artikel::where('kode_depresi', $kode_depresi)->first();
+        // Ambil data alternatif (anak)
+        $anak = Alternatif::findOrFail($diagnosa->alternatif_id);
+        $usia = Carbon::parse($anak->tanggal_lahir)->age;
+
+        // 🎯 Skor Dummy (ganti dengan hasil hitung real jika ada)
+        $skor = [
+            'gejala_emosional' => 4,
+            'masalah_prilaku' => 5,
+            'hiperaktivitas' => 6,
+            'masalah_teman' => 3,
+            'prososial' => 6,
+        ];
+
+        $klasifikasi = [];
+        foreach ($skor as $key => $nilai) {
+            $klasifikasi[$key] = $this->klasifikasiSkor($key, $usia, $nilai);
+        }
+
+        $total_skor = $skor['gejala_emosional'] + $skor['masalah_prilaku'] + $skor['hiperaktivitas'] + $skor['masalah_teman'];
+        $total_klasifikasi = $this->klasifikasiTotalKesulitan($usia, $total_skor);
 
         return view('clients.cl_diagnosa_result', [
             "diagnosa" => $diagnosa,
@@ -291,27 +296,95 @@ class DiagnosaController extends Controller
             "gejala_by_user" => $gejala_by_user,
             "cf_kombinasi" => $cfKombinasi,
             "hasil" => $hasil,
-            "artikel" => $artikel
+            "artikel" => $artikel,
+            "skor" => $skor,
+            "klasifikasi" => $klasifikasi,
+            "total_klasifikasi" => $total_klasifikasi
         ]);
     }
 
-    public function getCfCombinasi($pakar, $user)
+    private function klasifikasiSkor($kriteria, $usia, $skor)
     {
-        $cfComb = [];
-        if (count($pakar) == count($user)) {
-            for ($i = 0; $i < count($pakar); $i++) {
-                $res = $pakar[$i] * $user[$i];
-                array_push($cfComb, floatval($res));
+        $range = [
+            'gejala_emosional' => [
+                'child' => ['normal' => [0, 2], 'borderline' => [3, 3], 'abnormal' => [4, 10]],
+                'teen' => ['normal' => [0, 3], 'borderline' => [4, 4], 'abnormal' => [5, 10]],
+            ],
+            'masalah_prilaku' => [
+                'child' => ['normal' => [0, 2], 'borderline' => [3, 3], 'abnormal' => [4, 10]],
+                'teen' => ['normal' => [0, 3], 'borderline' => [4, 4], 'abnormal' => [5, 10]],
+            ],
+            'hiperaktivitas' => [
+                'child' => ['normal' => [0, 5], 'borderline' => [6, 6], 'abnormal' => [7, 10]],
+                'teen' => ['normal' => [0, 5], 'borderline' => [6, 6], 'abnormal' => [7, 10]],
+            ],
+            'masalah_teman' => [
+                'child' => ['normal' => [0, 2], 'borderline' => [3, 3], 'abnormal' => [4, 10]],
+                'teen' => ['normal' => [0, 3], 'borderline' => [4, 5], 'abnormal' => [6, 10]],
+            ],
+            'prososial' => [
+                'child' => ['abnormal' => [0, 4], 'borderline' => [5, 5], 'normal' => [6, 10]],
+                'teen' => ['abnormal' => [0, 4], 'borderline' => [5, 5], 'normal' => [6, 10]],
+            ],
+        ];
+
+        $kategori_usia = $usia < 11 ? 'child' : 'teen';
+        $kategori = $range[$kriteria][$kategori_usia] ?? [];
+
+        foreach ($kategori as $label => [$min, $max]) {
+            if ($skor >= $min && $skor <= $max) {
+                return ucfirst($label); // hasil: Normal, Borderline, Abnormal
             }
-            return [
-                "cf" => $cfComb,
-                "kode_depresi" => ["0"]
-            ];
-        } else {
-            return "Data tidak valid";
         }
+
+        return "Tidak diketahui";
     }
 
+    private function klasifikasiTotalKesulitan($usia, $total)
+    {
+        $range = [
+            'child' => [
+                'normal' => [0, 13],
+                'borderline' => [14, 16],
+                'abnormal' => [17, 40]
+            ],
+            'teen' => [
+                'normal' => [0, 14],
+                'borderline' => [15, 17],
+                'abnormal' => [18, 40]
+            ],
+        ];
+
+        $kategori_usia = $usia < 11 ? 'child' : 'teen';
+
+        foreach ($range[$kategori_usia] as $label => [$min, $max]) {
+            if ($total >= $min && $total <= $max) {
+                return ucfirst($label);
+            }
+        }
+
+        return "Tidak diketahui";
+    }
+
+
+
+    public function cetakPdf($id)
+    {
+        $diagnosa = Diagnosa::with(['alternatif', 'detail'])->findOrFail($id);
+
+        // Data yang kamu butuhkan untuk dikirim ke view PDF
+        $data = [
+            'alternatif' => $diagnosa->alternatif,
+            'data_diagnosa' => [$diagnosa], // pastikan sesuai struktur
+            'klasifikasi' => $this->hitungKlasifikasi($diagnosa), // custom method sesuai kebutuhan
+            'skor' => $this->hitungSkor($diagnosa),
+            'diagnosa_id' => $diagnosa->id
+        ];
+
+        $pdf = Pdf::loadView('pages.diagnosa.cetak_pdf', $data)->setPaper('a4');
+
+        return $pdf->stream('hasil-assessment-' . $diagnosa->alternatif->nama . '.pdf');
+    }
 
     /**
      * Display the specified resource.

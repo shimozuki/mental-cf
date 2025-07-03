@@ -31,6 +31,19 @@
             </select>
           </div>
 
+          <div class="mb-3">
+            <label for="edit_kategori_sdq" class="form-label">Kategori SDQ</label>
+            <select class="form-select" id="edit_kategori_sdq" name="kategori_sdq" required>
+              <option value="" disabled>-- Pilih Kategori SDQ --</option>
+              <option value="gejala_emosional">Gejala Emosional</option>
+              <option value="masalah_prilaku">Masalah Perilaku</option>
+              <option value="hiperaktivitas">Hiperaktivitas</option>
+              <option value="teman">Masalah Teman</option>
+              <option value="prososial">Perilaku Prososial</option>
+            </select>
+          </div>
+
+
 
           <div class="d-grid gap-2">
             <button type="submit" class="btn btn-primary">Ubah</button>
@@ -78,6 +91,19 @@
             </select>
           </div>
 
+          <div class="mb-3">
+            <label for="kategori_sdq" class="form-label">Kategori SDQ</label>
+            <select class="form-select" id="kategori_sdq" name="kategori_sdq" required>
+              <option value="" disabled selected>-- Pilih Kategori SDQ --</option>
+              <option value="gejala_emosional">Gejala Emosional</option>
+              <option value="masalah_prilaku">Masalah Perilaku</option>
+              <option value="hiperaktivitas">Hiperaktivitas</option>
+              <option value="teman">Masalah Teman</option>
+              <option value="prososial">Perilaku Prososial</option>
+            </select>
+          </div>
+
+
           <div class="d-grid gap-2">
             <button type="submit" class="btn btn-primary">Simpan</button>
           </div>
@@ -94,12 +120,15 @@
 {{-- end modal tambah gejala --}}
 
 <script>
-  function updateInput(idGejala, kode, gejala, rentangUsia) {
+  function updateInput(idGejala, kode, gejala, rentangUsia, kategoriSDQ) {
     document.getElementById("edit_id_gejala").value = idGejala;
     document.getElementById("edit_kode_gejala").value = kode;
     document.getElementById("edit_gejala").value = gejala;
     document.getElementById("edit_rentang_usia").value = rentangUsia;
+    document.getElementById("edit_kategori_sdq").value = kategoriSDQ;
   }
+
+
 
   function actionUbahGejala(params) {
     const formGejala = document.getElementById('edit-gejala');
