@@ -91,7 +91,7 @@
                     <ul>
                         <li><a href="/form-faq">Diagnosa</a></li>
                         <li><a href="/gejala">Gejala</a></li>
-                        <li><a href="/depresi">Depresi</a></li>
+                        <li><a href="/depresi">Skrining</a></li>
                     </ul>
                 </li>
                 <!-- <li>
