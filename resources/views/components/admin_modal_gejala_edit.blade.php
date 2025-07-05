@@ -31,7 +31,7 @@
             </select>
           </div>
 
-          <div class="mb-3">
+          <!-- <div class="mb-3">
             <label for="edit_kategori_sdq" class="form-label">Kategori SDQ</label>
             <select class="form-select" id="edit_kategori_sdq" name="kategori_sdq" required>
               <option value="" disabled>-- Pilih Kategori SDQ --</option>
@@ -41,7 +41,7 @@
               <option value="teman">Masalah Teman</option>
               <option value="prososial">Perilaku Prososial</option>
             </select>
-          </div>
+          </div> -->
 
 
 
@@ -91,17 +91,17 @@
             </select>
           </div>
 
-          <div class="mb-3">
-            <label for="kategori_sdq" class="form-label">Kategori SDQ</label>
+          <!-- <div class="mb-3">
+            <label for="kategori_sdq" class="form-label">Kategori Kriteria</label>
             <select class="form-select" id="kategori_sdq" name="kategori_sdq" required>
               <option value="" disabled selected>-- Pilih Kategori SDQ --</option>
-              <option value="gejala_emosional">Gejala Emosional</option>
-              <option value="masalah_prilaku">Masalah Perilaku</option>
-              <option value="hiperaktivitas">Hiperaktivitas</option>
-              <option value="teman">Masalah Teman</option>
-              <option value="prososial">Perilaku Prososial</option>
+              <option value="K001">Gejala Emosional</option>
+              <option value="K002">Masalah Perilaku</option>
+              <option value="K003">Hiperaktivitas</option>
+              <option value="K004">Masalah Teman</option>
+              <option value="K005">Perilaku Prososial</option>
             </select>
-          </div>
+          </div> -->
 
 
           <div class="d-grid gap-2">

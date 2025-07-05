@@ -31,7 +31,6 @@
                         <th scope="col">Kode Gejala</th>
                         <th scope="col">Gejala</th>
                         <th scope="col">Rentang Usia</th>
-                        <th scope="col1">Kategori Gejala</th>
                         <th scope="col">Aksi</th>
                     </tr>
                 </thead>
@@ -42,9 +41,6 @@
                         <td>{{$item->kode_gejala}}</td>
                         <td>{{$item->gejala}}</td>
                         <td>{{$item->rentang_usia}}</td>
-                        <td>
-                            {{ $item->kategori_sdq }}
-
                         <td>
                             <button
                                 class="btn btn-outline-info"
