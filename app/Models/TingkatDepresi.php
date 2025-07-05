@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class TingkatDepresi extends Model
 {
     use HasFactory;
-    protected $table = 'tingkat_depresi';
-    protected $guard = ["id"];
-    protected $fillable = ['kode_depresi', 'depresi'];
+    protected $table = 'kriteria';
+    protected $guarded = ["id"];
+    protected $fillable = ['kode_kriteria', 'nama_kriteria'];
+
 
     public function fillTable()
     {

@@ -20,7 +20,7 @@
                     <tr>
                         <th scope="row">1</th>
                         <td>{{ $diagnosa->diagnosa_id }}</td>
-                        <td> {{ $diagnosa_dipilih["kode_depresi"]->kode_depresi }} | {{ $diagnosa_dipilih["kode_depresi"]->depresi }}</td>
+                        <td> {{ $diagnosa_dipilih["kode_kriteria"]->kode_kriteria }} | {{ $diagnosa_dipilih["kode_kriteria"]->depresi }}</td>
                         <td>{{ ($diagnosa_dipilih["nilai_cf"] ?? 0) }} %</td>
                     </tr>
                 </tbody>
@@ -48,7 +48,7 @@
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
-                                    {{ $item->kode_gejala }} | {{ $item->kode_depresi }}
+                                    {{ $item->kode_gejala }} | {{ $item->kode_kriteria }}
                                 </td>
                                 <td>{{ $item->mb - $item->md }}</td>
                             </tr>

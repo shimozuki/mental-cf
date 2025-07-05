@@ -10,7 +10,7 @@
     <!-- Basic Page Needs
  ================================================== -->
     <meta charset="utf-8">
-    <title>Diagnosa Depresi</title>
+    <title>Skrining</title>
     <meta name="description" content="Professional Creative Template" />
     <meta name="author" content="IG Design">
     <meta name="keywords"
@@ -140,7 +140,7 @@
                             </style>
                             <div style="margin-left: 12px">
 
-                                <a href="/form-faq" class="btn btn-dark btn-glow" role="button" style="color: rgb(218, 116, 22);">
+                                <a href="/form" class="btn btn-dark btn-glow" role="button" style="color: rgb(218, 116, 22);">
                                     Isi form
                                 </a>
                             </div>

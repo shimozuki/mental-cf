@@ -39,13 +39,16 @@ class TingkatDepresiController extends Controller
     public function store(StoreTingkatDepresiRequest $request)
     {
         $valid = $request->validate([
-            'kode_depresi' => 'required|unique:tingkat_depresi,kode_depresi',
-            'depresi' => 'required'
+            'kode_kriteria' => 'required|unique:kriteria,kode_kriteria',
+            'nama_kriteria' => 'required'
         ]);
+
         TingkatDepresi::create($valid);
-        return redirect()->route('depresi.index')->with('pesan', '<div class="alert alert-success p-3 mt-3" role="alert">
-        Daftar Depresi telah ditambahkan
-        </div>');
+
+        return redirect()->route('depresi.index')->with('pesan', '
+            <div class="alert alert-success p-3 mt-3" role="alert">
+                Kriteria baru telah ditambahkan
+            </div>');
     }
 
     /**
@@ -80,7 +83,7 @@ class TingkatDepresiController extends Controller
     public function update(UpdateTingkatDepresiRequest $request, $tingkatDepresi)
     {
         $valid = $request->validate([
-            'depresi' => 'required'
+            'nama_kriteria' => 'required'
         ]);
         $status = TingkatDepresi::find($tingkatDepresi)->update($valid);
         if ($status) {

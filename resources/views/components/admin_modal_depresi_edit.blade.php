@@ -12,14 +12,14 @@
           @method("put")
           @csrf
           <div class="input-form d-flex">
-            <input type="hidden" name="id" id="id_depresi">
+            <input type="hidden" name="id" id="id_kriteria">
             <div class="form-floating mb-3 p-2 mx-2">
-              <input type="text" class="form-control" id="kode-depresi" name="kode_depresi" readonly>
-              <label for="kode-depresi">Kode Kriteria</label>
+              <input type="text" class="form-control" id="kode_kriteria" name="kode_kriteria" readonly>
+              <label for="kode_kriteria">Kode Kriteria</label>
             </div>
             <div class="form-floating mb-3 p-2 mx-2">
-              <input type="text" class="form-control" id="depresi" name="depresi">
-              <label for="depresi">Nama Kriteria</label>
+              <input type="text" class="form-control" id="nama_kriteria" name="nama_kriteria">
+              <label for="nama_kriteria">Nama Kriteria</label>
             </div>
           </div>
           <button type="submit" class="btn btn-primary">ubah</button>
@@ -46,14 +46,14 @@
         <form id="tambah-depresi" action="{{ route('depresi.store') }}" method="post">
           @csrf
           <div class="input-form d-flex">
-            <input type="hidden" name="id" id="id_depresi">
+            <input type="hidden" name="id" id="id_kriteria">
             <div class="form-floating mb-3 p-2 mx-2">
-              <input type="text" class="form-control" id="kode-depresi" name="kode_depresi" placeholder="kode depresi" required>
-              <label for="kode-depresi">Kode Kriteria</label>
+              <input type="text" class="form-control" id="kode_kriteria" name="kode_kriteria" placeholder="kode kriteria" required>
+              <label for="kode_kriteria">Kode Kriteria</label>
             </div>
             <div class="form-floating mb-3 p-2 mx-2">
-              <input type="text" class="form-control" id="depresi" name="depresi" placeholder="depresi" required>
-              <label for="depresi">Nama Kriteria</label>
+              <input type="text" class="form-control" id="nama_kriteria" name="nama_kriteria" placeholder="nama kriteria" required>
+              <label for="nama_kriteria">Nama Kriteria</label>
             </div>
           </div>
           <button type="submit" class="btn btn-primary">simpan</button>
@@ -68,16 +68,16 @@
 {{-- end modal tambah depresi --}}
 
 <script>
-  function updateInput(iddepresi, kode, depresi) {
-    document.getElementById("kode-depresi").value = kode;
-    document.getElementById("depresi").value = depresi;
-    document.getElementById("id_depresi").value = iddepresi;
+  function updateInput(id, kode, nama) {
+    document.getElementById("kode_kriteria").value = kode;
+    document.getElementById("nama_kriteria").value = nama;
+    document.getElementById("id_kriteria").value = id;
   }
 
   function actionUbahdepresi(params) {
-    const formdepresi = document.getElementById('edit-depresi');
-    formdepresi.setAttribute('action', params);
-    formdepresi.setAttribute('method', 'POST');
-    console.log(formdepresi);
+    const form = document.getElementById('edit-depresi');
+    form.setAttribute('action', params);
+    form.setAttribute('method', 'POST');
+    console.log(form);
   }
 </script>

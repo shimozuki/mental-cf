@@ -86,9 +86,9 @@ class DiagnosaController extends Controller
         $arrGejala = [];
 
         foreach ($depresi as $dep) {
-            $cfArr = ["cf" => [], "kode_depresi" => []];
+            $cfArr = ["cf" => [], "kode_kriteria" => []];
             $rules = Keputusan::whereIn("kode_gejala", $kodeGejala)
-                ->where("kode_depresi", $dep->kode_depresi)->get();
+                ->where("kode_kriteria", $dep->kode_kriteria)->get();
 
             if ($rules->count() > 0) {
                 foreach ($rules as $rule) {
@@ -96,7 +96,7 @@ class DiagnosaController extends Controller
                     if ($bobot > 0) {
                         $cf = ($rule->mb - $rule->md) * floatval($bobot);
                         $cfArr["cf"][] = $cf;
-                        $cfArr["kode_depresi"][] = $rule->kode_depresi;
+                        $cfArr["kode_kriteria"][] = $rule->kode_kriteria;
                     }
                 }
 
@@ -106,7 +106,7 @@ class DiagnosaController extends Controller
                 $res = $this->getGabunganCf($cfArr);
 
                 $arrGejala[] = [
-                    'kode_depresi' => $res['kode_depresi'],
+                    'kode_kriteria' => $res['kode_kriteria'],
                     'nilai_cf' => round(floatval($res['value']) * 100, 2)
                 ];
             }
@@ -179,14 +179,14 @@ class DiagnosaController extends Controller
         if (empty($cfArr["cf"])) {
             return [
                 "value" => 0,
-                "kode_depresi" => null
+                "kode_kriteria" => null
             ];
         }
 
         if (count($cfArr["cf"]) == 1) {
             return [
                 "value" => strval($cfArr["cf"][0]),
-                "kode_depresi" => $cfArr["kode_depresi"][0] ?? null // <- aman
+                "kode_kriteria" => $cfArr["kode_kriteria"][0] ?? null // <- aman
             ];
         }
 
@@ -198,7 +198,7 @@ class DiagnosaController extends Controller
 
         return [
             "value" => "$cfoldGabungan",
-            "kode_depresi" => $cfArr["kode_depresi"][0] ?? null // <- aman
+            "kode_kriteria" => $cfArr["kode_kriteria"][0] ?? null // <- aman
         ];
     }
 
@@ -213,13 +213,13 @@ class DiagnosaController extends Controller
 
             return [
                 "cf" => $cfComb,
-                "kode_depresi" => ["0"] // nilai default
+                "kode_kriteria" => ["0"] // nilai default
             ];
         }
 
         return [
             "cf" => [],
-            "kode_depresi" => ["0"]
+            "kode_kriteria" => ["0"]
         ];
     }
 
@@ -237,18 +237,18 @@ class DiagnosaController extends Controller
         foreach ($data_diagnosa as $val) {
             if (floatval($val["nilai_cf"]) > $int) {
                 $diagnosa_dipilih["nilai_cf"] = floatval($val["nilai_cf"]);
-                $diagnosa_dipilih["kode_depresi"] = TingkatDepresi::where("kode_depresi", $val["kode_depresi"])->first();
+                $diagnosa_dipilih["kode_kriteria"] = TingkatDepresi::where("kode_kriteria", $val["kode_kriteria"])->first();
                 $int = floatval($val["nilai_cf"]);
             }
         }
 
-        if (!isset($diagnosa_dipilih["kode_depresi"])) {
+        if (!isset($diagnosa_dipilih["kode_kriteria"])) {
             return back()->with("error", "Data diagnosa tidak valid. Silakan ulangi proses diagnosa.");
         }
 
         // Data gejala user
         $kodeGejala = collect($gejala)->pluck(0)->all();
-        $pakar = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_depresi", $diagnosa_dipilih["kode_depresi"]->kode_depresi)->get();
+        $pakar = Keputusan::whereIn("kode_gejala", $kodeGejala)->where("kode_kriteria", $diagnosa_dipilih["kode_kriteria"]->kode_kriteria)->get();
 
         $gejala_by_user = [];
         foreach ($pakar as $key) {
@@ -264,7 +264,7 @@ class DiagnosaController extends Controller
 
         $cfKombinasi = $this->getCfCombinasi($nilaiPakar, $nilaiUser);
         $hasil = $this->getGabunganCf($cfKombinasi);
-        $artikel = Artikel::where('kode_depresi', $diagnosa_dipilih["kode_depresi"]->kode_depresi)->first();
+        $artikel = Artikel::where('kode_kriteria', $diagnosa_dipilih["kode_kriteria"]->kode_kriteria)->first();
 
         // Ambil data alternatif (anak)
         $anak = Alternatif::findOrFail($diagnosa->alternatif_id);

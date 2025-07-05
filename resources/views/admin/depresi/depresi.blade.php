@@ -37,16 +37,16 @@
                     @foreach ($depresi as $item)
                     <tr>
                         <th scope="row">{{ $loop->iteration }}</th>
-                        <td>{{$item->kode_depresi}}</td>
-                        <td>{{$item->depresi}}</td>
+                        <td>{{ $item->kode_kriteria }}</td>
+                        <td>{{ $item->nama_kriteria }}</td>
                         <td>
                             <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="updateInput('{{ $item->id }}',
-                                '{{$item->kode_depresi}}', '{{$item->depresi}}'), actionUbahdepresi('{{ route('depresi.update', $item->id) }}')">
+                                '{{$item->kode_kriteria}}', '{{$item->nama_kriteria}}'), actionUbahdepresi('{{ route('depresi.update', $item->id) }}')">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
                             <form action="{{ route('depresi.destroy', $item) }}" class="d-inline" method="POST">
                                 @method('DELETE')
-                                @csrf()
+                                @csrf
                                 <button type="submit" class="btn btn-outline-danger">
                                     <i class="bi bi-trash3-fill"></i>
                                 </button>
