@@ -64,7 +64,7 @@ Route::get('/form', function () {
         'kondisi_user' => KondisiUser::all()
     ];
     return view('form', $data);
-});
+})->name('cl.form');
 
 Route::get('/form-faq', function () {
     $data = [
