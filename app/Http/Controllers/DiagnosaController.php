@@ -73,12 +73,17 @@ class DiagnosaController extends Controller
     {
         $usia = Carbon::parse($request->tanggal_lahir)->age;
 
-        $user = User::create([
-            'name' => $request->nama,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 3 // role untuk pasien
-        ]);
+        if (auth()->check()) {
+            $user = auth()->user();
+        } else {
+            // ❗Jika belum login, buat akun baru
+            $user = User::create([
+                'name' => $request->nama,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 3 // role pasien
+            ]);
+        }
 
         $alternatif = Alternatif::create([
             'nama' => $request->nama,
@@ -86,7 +91,7 @@ class DiagnosaController extends Controller
             'tanggal_lahir' => $request->tanggal_lahir,
             'usia' => $usia,
             'pengisi' => $request->pengisi, // tambahkan jika kolom ini ada
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
         ]);
 
 
@@ -171,7 +176,8 @@ class DiagnosaController extends Controller
                     Log::info("🟢 Gejala {$kodeGejala} (nilai: {$nilai}) -> Kriteria: {$kriteria->kode_kriteria} - {$kriteria->nama_kriteria} => Kategori: {$kategori}");
 
                     if (isset($skor[$kategori])) {
-                        $skor[$kategori] += floatval($nilai);
+                        $cf = ($keputusan->mb - $keputusan->md) * floatval($nilai);
+                        $skor[$kategori] += $cf;
                     }
                 } else {
                     Log::warning("⚠️ Tidak ditemukan kriteria untuk gejala {$kodeGejala}");

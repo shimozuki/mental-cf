@@ -34,7 +34,7 @@ Route::get('/', function () {
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard    ');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::post('/tambah', [PsikologController::class, 'register'])->name('addakun');
     Route::get('/dashboard/admin', [PsikologController::class, 'listAdmin']);
