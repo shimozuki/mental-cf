@@ -3,6 +3,14 @@
 
 {{-- isi --}}
 @section('admin_content')
+<style>
+  .card .filter {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+  }
+</style>
+
 <!-- Page content-->
 <main id="main" class="main">
 
@@ -119,90 +127,52 @@
 
 
 
-          <!-- Recent Sales -->
           <div class="col-12">
-            <div class="card recent-sales overflow-auto">
+  <div class="card">
+    {{-- FILTER DROPDOWN --}}
+    <div class="filter">
+      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#filterModal">Filter Tanggal</a></li>
+      </ul>
+    </div>
 
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-                </ul>
-              </div>
+    <div class="card-body">
+      <h5 class="card-title">Grafik Skrining <span>| Bulanan</span></h5>
+      <canvas id="skriningChart" width="800" height="300"></canvas>
+    </div>
+  </div>
+</div>
 
-              <div class="card-body">
-                <h5 class="card-title">Daftar <span>| Gejala</span></h5>
-
-                <table class="table table-borderless datatable">
-                  <thead>
-                    <tr>
-                      <th scope="col">#</th>
-                      <th scope="col">Kode Gejala</th>
-                      <th scope="col">Gejala</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach ($gejala as $item)
-                    <tr>
-                      <th scope="row"><a href="#">#{{ $loop->iteration }}</a></th>
-                      <td><a href="#" class="text-primary">{{ $item->kode_gejala }}</a></td>
-                      <td>{{ $item->gejala }}</td>
-                    </tr>
-                    @endforeach
-                  </tbody>
-                </table>
-
-              </div>
-
+{{-- MODAL FILTER TANGGAL --}}
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <form method="GET" action="{{ route('dashboard') }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filterModalLabel">Filter Tanggal</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="start_date" class="form-label">Tanggal Mulai</label>
+              <input type="date" class="form-control" name="start_date" id="start_date" required>
             </div>
-          </div><!-- End Recent Sales -->
-
-          <!-- Top Selling -->
-          <div class="col-12">
-            <div class="card top-selling overflow-auto">
-
-              <div class="filter">
-                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                    <h6>Filter</h6>
-                  </li>
-
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
-                </ul>
-              </div>
-
-              <div class="card-body pb-0">
-                <h5 class="card-title">Lekukan<span>| Skrining</span></h5>
-
-                <table class="table table-borderless">
-                  <thead>
-                    <tr>
-                      <th scope="col">Id</th>
-                      <th scope="col">Kode depresi</th>
-                      <th scope="col">Tinkat depresi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach ($tingkat_depresi as $item)
-                    <tr>
-                      <th scope="row"><a href="#">#{{ $loop->iteration }}</a></th>
-                      <td><a href="#" class="text-primary">{{ $item->kode_kriteria }}</a></td>
-                      <td>{{ $item->depresi }}</td>
-                    </tr>
-                    @endforeach
-
-                  </tbody>
-                </table>
-
-              </div>
-
+            <div class="col-md-6 mb-3">
+              <label for="end_date" class="form-label">Tanggal Selesai</label>
+              <input type="date" class="form-control" name="end_date" id="end_date" required>
             </div>
-          </div><!-- End Top Selling -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Terapkan</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 
         </div>
       </div><!-- End Left side columns -->
@@ -216,3 +186,38 @@
 
 
 @endsection
+@push('js')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('skriningChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($labels) !!},
+                    datasets: [{
+                        label: 'Jumlah Skrining',
+                        data: {!! json_encode($data) !!},
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+@endpush
+

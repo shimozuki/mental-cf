@@ -9,5 +9,5 @@ class Alternatif extends Model
 {
     use HasFactory;
     protected $table = 'alternatifs';
-    protected $fillable = ['nama', 'jenis_kelamin', 'tanggal_lahir', 'usia'];
+    protected $fillable = ['nama', 'jenis_kelamin', 'tanggal_lahir', 'usia', 'user_id'];
 }

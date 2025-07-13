@@ -3,18 +3,19 @@
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 @endsection
 @section('js_external_assets')
-    <script src="{{ asset('assets/js/main.js') }}"></script>
+<script src="{{ asset('assets/js/main.js') }}"></script>
 @endsection --}}
 @section('main_section')
-    {{-- Navbar dan header --}}
-    @include('components.admin_header')
+{{-- Navbar dan header --}}
+@include('components.admin_header')
 
-    {{-- seidebar --}}
-    @include('components.admin_sidebar')
+{{-- seidebar --}}
+@include('components.admin_sidebar')
 
-    {{-- isi --}}
-    <main>
-        @yield('admin_content')
-    </main>
+{{-- isi --}}
+<main>
+    @yield('admin_content')
+</main>
+@stack('js')
 
 @endsection

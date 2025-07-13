@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -41,4 +42,19 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function isAdmin()
+    {
+        return $this->role === 1;
+    }
+
+    public function isPsikolog()
+    {
+        return $this->role === 2;
+    }
+
+    public function isPasien()
+    {
+        return $this->role === 3;
+    }
 }

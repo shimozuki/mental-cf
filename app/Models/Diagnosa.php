@@ -23,4 +23,9 @@ class Diagnosa extends Model
         'kondisi',
         'alternatif_id',
     ];
+
+    public function alternatif()
+    {
+        return $this->belongsTo(Alternatif::class);
+    }
 }

@@ -9,7 +9,7 @@
          <span>Dashboard</span>
        </a>
      </li><!-- End Dashboard Nav -->
-
+     @if(Auth::user()->role == 3)
      <li class="nav-heading">Pengetahuan</li>
 
      <li class="nav-item">
@@ -18,6 +18,14 @@
          <span>Skrining</span>
        </a>
      </li><!-- End Gejala Page Nav -->
+     <li class="nav-item">
+       <a class="nav-link collapsed" href="{{ route('spk.index') }}">
+         <i class="bi bi-clipboard2-data"></i>
+         <span>Hasil Skrining</span>
+       </a>
+     </li><!-- End Depresi Page Nav -->
+     @endif
+     @if(Auth::user()->role == 2)
      <li class="nav-item">
        <a class="nav-link collapsed" href="{{ route('gejala.index') }}">
          <i class="bi bi-activity"></i>
@@ -38,27 +46,28 @@
          <span>Hasil Skrining</span>
        </a>
      </li><!-- End Depresi Page Nav -->
-
+     @endif
+     @if(Auth::user()->role == 1)
      <li class="nav-heading">Pengaturan</li>
 
      <li class="nav-item">
        <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
-         <i class="bi bi-person"></i><span>Admin</span><i class="bi bi-chevron-down ms-auto"></i>
+         <i class="bi bi-person"></i><span>Akun</span><i class="bi bi-chevron-down ms-auto"></i>
        </a>
        <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
          <li>
            <a href="/dashboard/add_admin">
-             <i class="bi bi-circle"></i><span>Tambah Admin</span>
+             <i class="bi bi-circle"></i><span>Tambah Akun</span>
            </a>
          </li>
          <li>
            <a href="/dashboard/admin">
-             <i class="bi bi-circle"></i><span>Daftar Admin</span>
+             <i class="bi bi-circle"></i><span>Daftar Akun</span>
            </a>
          </li>
        </ul>
      </li><!-- End Forms Nav -->
-
+     @endif
 
 
 

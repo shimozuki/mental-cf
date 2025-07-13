@@ -206,9 +206,9 @@
     <div class="navbar">
         <h1>SPK Skrining Mental Anak</h1>
         <div>
-            <a href="/">🏠 Beranda</a>
+            <a href="/dashboard">🏠 Dashboard</a>
             <a href="/riwayat">📜 Riwayat</a>
-            <a href="/tentang">ℹ️ Tentang</a>
+            <a href="/login">ℹ️ Login</a>
         </div>
     </div>
 

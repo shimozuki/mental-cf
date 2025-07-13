@@ -12,12 +12,17 @@ use App\Models\Keputusan;
 use App\Models\Kode_Gejala;
 use App\Models\KondisiUser;
 use App\Models\TingkatDepresi;
+use App\Models\User;
 use GuzzleHttp\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\FacadesLog;
+use Illuminate\Support\Str;
 
 use function PHPSTORM_META\map;
 use function PHPSTORM_META\type;
@@ -31,12 +36,23 @@ class DiagnosaController extends Controller
      */
     public function index()
     {
-        $diagnosa = Diagnosa::all();
+        $user = auth()->user();
+
+        if ($user->role == 3) {
+            // Pasien: hanya tampilkan diagnosa yang punya alternatif milik user login
+            $diagnosa = Diagnosa::whereHas('alternatif', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->paginate(10);
+        } else {
+            // Admin/psikolog: tampilkan semua diagnosa
+            $diagnosa = Diagnosa::paginate(10);
+        }
 
         return view('admin.diagnosa.admin_semua_diagnosa', [
-            "diagnosa" => $diagnosa,
+            'diagnosa' => $diagnosa,
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -56,13 +72,24 @@ class DiagnosaController extends Controller
     public function store(StoreDiagnosaRequest $request)
     {
         $usia = Carbon::parse($request->tanggal_lahir)->age;
+
+        $user = User::create([
+            'name' => $request->nama,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 3 // role untuk pasien
+        ]);
+
         $alternatif = Alternatif::create([
             'nama' => $request->nama,
             'jenis_kelamin' => $request->jenis_kelamin,
             'tanggal_lahir' => $request->tanggal_lahir,
             'usia' => $usia,
             'pengisi' => $request->pengisi, // tambahkan jika kolom ini ada
+            'user_id' => auth()->id(),
         ]);
+
+
 
         // 2. Ambil dan proses input kondisi gejala
         $filteredArray = $request->post('kondisi') ?? [];
@@ -121,12 +148,38 @@ class DiagnosaController extends Controller
             'prososial' => 0,
         ];
 
-        foreach ($bobotPilihan as [$kode, $nilai]) {
-            $gejala = \App\Models\Gejala::where('kode_gejala', $kode)->first();
-            if ($gejala && $gejala->kategori_sdq && isset($skor[$gejala->kategori_sdq])) {
-                $skor[$gejala->kategori_sdq] += (int)$nilai;
+        foreach ($bobotPilihan as [$kodeGejala, $nilai]) {
+            if (floatval($nilai) <= 0) continue;
+
+            $keputusans = \App\Models\Keputusan::where('kode_gejala', $kodeGejala)->get();
+
+            foreach ($keputusans as $keputusan) {
+                $kriteria = DB::table('kriteria')->where('kode_kriteria', $keputusan->kode_kriteria)->first();
+
+                if ($kriteria) {
+                    $kategori = Str::slug(strtolower($kriteria->nama_kriteria), '_');
+
+                    if ($kategori === 'propososial') {
+                        $kategori = 'prososial'; // <- fix typo
+                    }
+
+                    if ($kategori === 'masalah_perilaku') {
+                        $kategori = 'masalah_prilaku'; // <- fix typo juga
+                    } // contoh: "Masalah Prilaku" → "masalah_prilaku"
+
+                    // ✅ Logging kategori dan nilainya
+                    Log::info("🟢 Gejala {$kodeGejala} (nilai: {$nilai}) -> Kriteria: {$kriteria->kode_kriteria} - {$kriteria->nama_kriteria} => Kategori: {$kategori}");
+
+                    if (isset($skor[$kategori])) {
+                        $skor[$kategori] += floatval($nilai);
+                    }
+                } else {
+                    Log::warning("⚠️ Tidak ditemukan kriteria untuk gejala {$kodeGejala}");
+                }
             }
         }
+
+
 
         $klasifikasi = [];
         foreach ($skor as $key => $nilai) {
@@ -148,6 +201,9 @@ class DiagnosaController extends Controller
             'klasifikasi' => json_encode($klasifikasi),
             'kondisi' => json_encode($bobotPilihan)
         ]);
+
+        Log::info("Gejala: $kodeGejala, Kategori: $kategori, Nilai: $nilai");
+        Log::info('Skor akhir:', $skor);
 
 
         return redirect()->route('spk.hasil', $diagnosa_id);
@@ -271,12 +327,12 @@ class DiagnosaController extends Controller
         $usia = Carbon::parse($anak->tanggal_lahir)->age;
 
         // 🎯 Skor Dummy (ganti dengan hasil hitung real jika ada)
-        $skor = [
-            'gejala_emosional' => 4,
-            'masalah_prilaku' => 5,
-            'hiperaktivitas' => 6,
-            'masalah_teman' => 3,
-            'prososial' => 6,
+        $skor = json_decode($diagnosa->total_score, true) ?? [
+            'gejala_emosional' => 0,
+            'masalah_prilaku' => 0,
+            'hiperaktivitas' => 0,
+            'masalah_teman' => 0,
+            'prososial' => 0,
         ];
 
         $klasifikasi = [];
@@ -284,7 +340,7 @@ class DiagnosaController extends Controller
             $klasifikasi[$key] = $this->klasifikasiSkor($key, $usia, $nilai);
         }
 
-        $total_skor = $skor['gejala_emosional'] + $skor['masalah_prilaku'] + $skor['hiperaktivitas'] + $skor['masalah_teman'];
+        $total_skor = $skor['gejala_emosional'] + $skor['masalah_prilaku'] + $skor['hiperaktivitas'] + $skor['masalah_teman'] + $skor['prososial'];
         $total_klasifikasi = $this->klasifikasiTotalKesulitan($usia, $total_skor);
 
         return view('clients.cl_diagnosa_result', [

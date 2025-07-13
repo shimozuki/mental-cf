@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiagnosaController;
 use App\Http\Controllers\GejalaController;
+use App\Http\Controllers\PsikologController;
 use App\Http\Controllers\TingkatDepresiController;
 use App\Models\Diagnosa;
 use App\Models\TingkatDepresi;
@@ -28,24 +31,15 @@ Route::get('/', function () {
 });
 
 
+
+
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        $data = [
-            'gejala' => Gejala::all(),
-            'kondisi_user' => KondisiUser::all(),
-            'user' => User::all(),
-            'tingkat_depresi' => TingkatDepresi::all()
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard    ');
 
-        ];
-        return view('admin.dashboard', $data);
-    });
+    Route::post('/tambah', [PsikologController::class, 'register'])->name('addakun');
+    Route::get('/dashboard/admin', [PsikologController::class, 'listAdmin']);
 
-    Route::get('/dashboard/admin', function () {
-        $data = [
-            'user' => User::all()
-        ];
-        return view('admin.list_admin', $data);
-    });
+
 
     Route::get('/dashboard/add_admin', function () {
         return view('admin.add_admin');
@@ -86,6 +80,8 @@ Route::get('/hasil/{diagnosa_id}', [DiagnosaController::class, 'hasilSkrining'])
 // Resource route ini terakhir
 Route::resource('/spk', DiagnosaController::class);
 Route::get('/cetak-pdf/{diagnosa_id}', [DiagnosaController::class, 'cetakPDF'])->name('cetak.pdf');
+
+
 
 
 

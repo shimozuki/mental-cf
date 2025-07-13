@@ -16,7 +16,7 @@ class TingkatDepresiController extends Controller
     public function index()
     {
         return view('admin.depresi.depresi', [
-            'depresi' => TingkatDepresi::all()
+            'depresi' => TingkatDepresi::paginate(10)
         ]);
     }
 

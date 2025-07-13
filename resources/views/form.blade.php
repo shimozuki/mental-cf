@@ -68,9 +68,8 @@
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
 					<li class="nav-item"><a class="nav-link" href="/">Beranda</a></li>
-					<li class="nav-item"><a class="nav-link" href="#">Gejala</a></li>
-					<li class="nav-item"><a class="nav-link" href="#">Depresi</a></li>
-					<li class="nav-item"><a class="nav-link active" href="#">Skrining</a></li>
+					<li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+					<li class="nav-item"><a class="nav-link active" href="#">Riwayat</a></li>
 				</ul>
 			</div>
 		</div>
@@ -110,7 +109,16 @@
 							<option value="Anak">Anak</option>
 						</select>
 					</div>
+					<div class="col-md-6">
+						<label for="email" class="form-label">Email</label>
+						<input type="email" class="form-control" id="email" name="email" placeholder="Email login" required>
+					</div>
+					<div class="col-md-6">
+						<label for="password" class="form-label">Password</label>
+						<input type="password" class="form-control" id="password" name="password" placeholder="Password login" required>
+					</div>
 				</div>
+
 
 				<!-- Progress Bar (static 0%/4%) -->
 				<div class="mb-4">
