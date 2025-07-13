@@ -204,7 +204,7 @@
 
     <!-- Navbar -->
     <div class="navbar">
-        <h1>SPK Skrining Mental Anak</h1>
+        <h1>Skrining Mental Emosional</h1>
         <div>
             <a href="/dashboard">🏠 Dashboard</a>
             <a href="/riwayat">📜 Riwayat</a>

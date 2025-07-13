@@ -73,7 +73,7 @@ Route::get('/form-faq', function () {
     ];
 
     return view('faq', $data);
-})->name('cl.form');
+});
 
 Route::get('/hasil/{diagnosa_id}', [DiagnosaController::class, 'hasilSkrining'])->name('spk.hasil');
 

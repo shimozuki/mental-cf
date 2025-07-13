@@ -56,9 +56,7 @@
 	<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 		<div class="container">
 			<a class="navbar-brand d-flex align-items-center" href="/">
-				<img src="{{ asset('depresi-assets/wp-content/themes/mha_s2s/assets/images/mha-logo.png') }}"
-					alt="Logo" height="30" class="me-2">
-				SPK Depresi Anak
+				SKRINING mental emosional
 			</a>
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
 				data-bs-target="#navbarNav">
