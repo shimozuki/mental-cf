@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/gejala', GejalaController::class);
     Route::resource('/depresi', TingkatDepresiController::class);
     Route::resource('/spk', DiagnosaController::class)->only('index');
+    Route::get('/admin/diagnosa/pdf', [DiagnosaController::class, 'exportPdf'])->name('admin.diagnosa.pdf');
 });
 
 

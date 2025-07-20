@@ -18,7 +18,12 @@
 
     <section class="section dashboard">
         <div class="row">
-
+            <div class="mt-2 pt-3 d-flex ms-auto">
+                <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#storeModal">
+                    <i class="bi bi-plus-circle-fill"> Tambah Gejala</i>
+                </button>
+            </div>
+            <br>
             <!-- Left side columns -->
             <div class="col-lg-12">
                 <div class="row">

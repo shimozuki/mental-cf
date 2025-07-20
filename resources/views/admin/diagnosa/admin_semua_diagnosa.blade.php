@@ -18,6 +18,25 @@
 
     <section class="section dashboard">
         <div class="row">
+            <form method="GET" action="{{ route('spk.index') }}" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Dari Tanggal</label>
+                    <input type="date" class="form-control" name="start_date" id="start_date" value="{{ request('start_date') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">Sampai Tanggal</label>
+                    <input type="date" class="form-control" name="end_date" id="end_date" value="{{ request('end_date') }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="{{ route('spk.index') }}" class="btn btn-secondary ms-2">Reset</a>
+                </div>
+                <div class="col-md-3 d-flex align-items-end justify-content-end">
+                    <a href="{{ route('admin.diagnosa.pdf', ['start_date' => request('start_date'), 'end_date' => request('end_date')]) }}" class="btn btn-danger" target="_blank">
+                        <i class="bi bi-file-earmark-pdf"></i> Cetak PDF
+                    </a>
+                </div>
+            </form>
 
             <!-- Left side columns -->
             <div class="col-lg-12">

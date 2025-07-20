@@ -34,23 +34,47 @@ class DiagnosaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
+        $query = Diagnosa::query();
+
         if ($user->role == 3) {
-            // Pasien: hanya tampilkan diagnosa yang punya alternatif milik user login
-            $diagnosa = Diagnosa::whereHas('alternatif', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->paginate(10);
-        } else {
-            // Admin/psikolog: tampilkan semua diagnosa
-            $diagnosa = Diagnosa::paginate(10);
+            $query->whereHas('alternatif', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
         }
+
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        }
+
+        $diagnosa = $query->latest()->paginate(10);
 
         return view('admin.diagnosa.admin_semua_diagnosa', [
             'diagnosa' => $diagnosa,
         ]);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Diagnosa::with('alternatif');
+
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59'
+            ]);
+        }
+
+        $diagnosa = $query->get();
+
+        $pdf = Pdf::loadView('admin.diagnosa.pdf', compact('diagnosa'))->setPaper('a4', 'landscape');
+        return $pdf->stream('laporan-diagnosa.pdf');
     }
 
 
