@@ -169,7 +169,7 @@ class DiagnosaController extends Controller
         }
 
         // 4. Hitung skor SDQ (dummy — nanti bisa dari mapping kode_gejala)
-        $skor = [
+        $skor_sdq = [
             'gejala_emosional' => 0,
             'masalah_prilaku' => 0,
             'hiperaktivitas' => 0,
@@ -177,46 +177,52 @@ class DiagnosaController extends Controller
             'prososial' => 0,
         ];
 
-        foreach ($bobotPilihan as [$kodeGejala, $nilai]) {
-            if (floatval($nilai) <= 0) continue;
+        $skor_cf = [
+            'gejala_emosional' => 0,
+            'masalah_prilaku' => 0,
+            'hiperaktivitas' => 0,
+            'masalah_teman' => 0,
+            'prososial' => 0,
+        ];
 
-            $keputusans = \App\Models\Keputusan::where('kode_gejala', $kodeGejala)->get();
+
+        foreach ($bobotPilihan as [$kodeGejala, $nilai]) {
+            $keputusans = Keputusan::where('kode_gejala', $kodeGejala)->get();
 
             foreach ($keputusans as $keputusan) {
                 $kriteria = DB::table('kriteria')->where('kode_kriteria', $keputusan->kode_kriteria)->first();
+                if (!$kriteria) continue;
 
-                if ($kriteria) {
-                    $kategori = Str::slug(strtolower($kriteria->nama_kriteria), '_');
+                $map = [
+                    'Gejala Emosional' => 'gejala_emosional',
+                    'Masalah Perilaku' => 'masalah_prilaku',
+                    'Hiperaktivitas' => 'hiperaktivitas',
+                    'Masalah Teman' => 'masalah_teman',
+                    'Propososial' => 'prososial',
+                ];
+                $kategori = $map[$kriteria->nama_kriteria] ?? null;
 
-                    if ($kategori === 'propososial') {
-                        $kategori = 'prososial'; // <- fix typo
-                    }
+                if ($kategori && isset($skor_sdq[$kategori])) {
+                    $skor_sdq[$kategori] += floatval($nilai); // nilai 0/1/2 asli
+                }
 
-                    if ($kategori === 'masalah_perilaku') {
-                        $kategori = 'masalah_prilaku'; // <- fix typo juga
-                    } // contoh: "Masalah Prilaku" → "masalah_prilaku"
-
-                    // ✅ Logging kategori dan nilainya
-                    Log::info("🟢 Gejala {$kodeGejala} (nilai: {$nilai}) -> Kriteria: {$kriteria->kode_kriteria} - {$kriteria->nama_kriteria} => Kategori: {$kategori}");
-
-                    if (isset($skor[$kategori])) {
-                        $cf = ($keputusan->mb - $keputusan->md) * floatval($nilai);
-                        $skor[$kategori] += $cf;
-                    }
-                } else {
-                    Log::warning("⚠️ Tidak ditemukan kriteria untuk gejala {$kodeGejala}");
+                if ($kategori && isset($skor_cf[$kategori])) {
+                    $cf = ($keputusan->mb - $keputusan->md) * floatval($nilai);
+                    $skor_cf[$kategori] += $cf; // nilai CF akumulatif
                 }
             }
         }
 
 
 
-        $klasifikasi = [];
-        foreach ($skor as $key => $nilai) {
-            $klasifikasi[$key] = $this->klasifikasiSkor($key, $usia, $nilai);
+
+        foreach ($skor_sdq as $key => $nilai) {
+            $klasifikasi[$key] = $this->klasifikasiSkor($key, $usia, round($nilai));
         }
 
-        $total_skor = $skor['gejala_emosional'] + $skor['masalah_prilaku'] + $skor['hiperaktivitas'] + $skor['masalah_teman'] + $skor['prososial']; // <- tambahkan ini
+        $total_skor = $skor_sdq['gejala_emosional'] + $skor_sdq['masalah_prilaku'] +
+            $skor_sdq['hiperaktivitas'] + $skor_sdq['masalah_teman'];
+        $klasifikasi['total'] = $this->klasifikasiTotalKesulitan($usia, round($total_skor));
         $total_klasifikasi = $this->klasifikasiTotalKesulitan($usia, $total_skor);
         $klasifikasi['total'] = $total_klasifikasi;
 
@@ -226,14 +232,15 @@ class DiagnosaController extends Controller
             'diagnosa_id' => $diagnosa_id,
             'alternatif_id' => $alternatif->id,
             'usia' => $usia,
-            'data_diagnosa' => json_encode($arrGejala),
-            'total_score' => json_encode($skor),
+            'data_diagnosa' => json_encode($arrGejala), // ini hasil CF
+            'total_score' => json_encode($skor_sdq),     // ini hasil SDQ
             'klasifikasi' => json_encode($klasifikasi),
             'kondisi' => json_encode($bobotPilihan)
         ]);
 
+
         Log::info("Gejala: $kodeGejala, Kategori: $kategori, Nilai: $nilai");
-        Log::info('Skor akhir:', $skor);
+        Log::info('Skor akhir:', $skor_sdq);
 
 
         return redirect()->route('spk.hasil', $diagnosa_id);
