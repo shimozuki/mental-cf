@@ -249,10 +249,11 @@
                     @php
                     $klas = $klasifikasi[$kategori] ?? '-';
                     $warna = badgeColor($klas);
+                    $nilai_bulat = round($nilai);
                     @endphp
                     <div class="score-card">
-                        <span class="score-badge" style="background-color: {{ $warna }}">{{ $nilai }}</span>
-                        <div class="score-value">{{ $nilai }}</div>
+                        <span class="score-badge" style="background-color: {{ $warna }}">{{ $nilai_bulat }}</span>
+                        <div class="score-value">{{ $nilai_bulat }}</div>
                         <div><strong>{{ ucwords(str_replace('_', ' ', $kategori)) }}</strong></div>
                         <div>{{ $klas }}</div>
                     </div>
@@ -263,16 +264,18 @@
                     $total_kesulitan = collect($skor)
                     ->filter(fn($val, $key) => strtolower($key) !== 'prososial')
                     ->sum();
+                    $total_kesulitan_bulat = round($total_kesulitan);
                     $klas_total = $klasifikasi['total'] ?? '-';
                     $warna_total = badgeColor($klas_total);
                     @endphp
                     <div class="score-card">
-                        <span class="score-badge" style="background-color: {{ $warna_total }}">{{ $total_kesulitan }}</span>
-                        <div class="score-value">{{ $total_kesulitan }}</div>
+                        <span class="score-badge" style="background-color: {{ $warna_total }}">{{ $total_kesulitan_bulat }}</span>
+                        <div class="score-value">{{ $total_kesulitan_bulat }}</div>
                         <div><strong>Total Kesulitan</strong></div>
                         <div>{{ $klas_total }}</div>
                     </div>
                 </div>
+
                 <br>
 
 

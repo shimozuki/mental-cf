@@ -367,7 +367,7 @@ class DiagnosaController extends Controller
 
         $klasifikasi = [];
         foreach ($skor as $key => $nilai) {
-            $klasifikasi[$key] = $this->klasifikasiSkor($key, $usia, $nilai);
+            $klasifikasi[$key] = $this->klasifikasiPerKategori($key, $usia, round($nilai));
         }
 
         $total_skor = $skor['gejala_emosional'] + $skor['masalah_prilaku'] + $skor['hiperaktivitas'] + $skor['masalah_teman'] + $skor['prososial'];
@@ -425,6 +425,88 @@ class DiagnosaController extends Controller
 
         return "Tidak diketahui";
     }
+
+    private function klasifikasiPerKategori($kategori, $usia, $nilai)
+    {
+        $kategori = strtolower($kategori);
+        $kategori_usia = $usia < 11 ? 'child' : 'teen';
+
+        $range = [
+            'gejala_emosional' => [
+                'child' => [
+                    'normal' => [0, 2],
+                    'borderline' => [3, 3],
+                    'abnormal' => [4, 10],
+                ],
+                'teen' => [
+                    'normal' => [0, 3],
+                    'borderline' => [4, 4],
+                    'abnormal' => [5, 10],
+                ],
+            ],
+            'masalah_prilaku' => [
+                'child' => [
+                    'normal' => [0, 2],
+                    'borderline' => [3, 3],
+                    'abnormal' => [4, 10],
+                ],
+                'teen' => [
+                    'normal' => [0, 3],
+                    'borderline' => [4, 4],
+                    'abnormal' => [5, 10],
+                ],
+            ],
+            'hiperaktivitas' => [
+                'child' => [
+                    'normal' => [0, 5],
+                    'borderline' => [6, 6],
+                    'abnormal' => [7, 10],
+                ],
+                'teen' => [
+                    'normal' => [0, 5],
+                    'borderline' => [6, 6],
+                    'abnormal' => [7, 10],
+                ],
+            ],
+            'masalah_teman' => [
+                'child' => [
+                    'normal' => [0, 2],
+                    'borderline' => [3, 3],
+                    'abnormal' => [4, 10],
+                ],
+                'teen' => [
+                    'normal' => [0, 3],
+                    'borderline' => [4, 5],
+                    'abnormal' => [6, 10],
+                ],
+            ],
+            'prososial' => [
+                'child' => [
+                    'abnormal' => [0, 4],
+                    'borderline' => [5, 5],
+                    'normal' => [6, 10],
+                ],
+                'teen' => [
+                    'abnormal' => [0, 4],
+                    'borderline' => [5, 5],
+                    'normal' => [6, 10],
+                ],
+            ]
+        ];
+
+        if (!isset($range[$kategori][$kategori_usia])) {
+            return 'Tidak diketahui';
+        }
+
+        foreach ($range[$kategori][$kategori_usia] as $label => [$min, $max]) {
+            if ($nilai >= $min && $nilai <= $max) {
+                return ucfirst($label);
+            }
+        }
+
+        return 'Tidak diketahui';
+    }
+
 
     private function klasifikasiTotalKesulitan($usia, $total)
     {
