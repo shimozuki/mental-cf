@@ -77,10 +77,10 @@ Route::get('/form-faq', function () {
 });
 
 Route::get('/hasil/{diagnosa_id}', [DiagnosaController::class, 'hasilSkrining'])->name('spk.hasil');
-
+Route::get('cetak-pdf/{id}', [DiagnosaController::class, 'cetakPdf'])->name('cetak.pdf');
 // Resource route ini terakhir
 Route::resource('/spk', DiagnosaController::class);
-Route::get('/cetak-pdf/{diagnosa_id}', [DiagnosaController::class, 'cetakPDF'])->name('cetak.pdf');
+
 
 
 

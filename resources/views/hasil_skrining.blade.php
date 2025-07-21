@@ -179,6 +179,7 @@
     <body>
 
         @php
+        if (!function_exists('badgeColor')) {
         function badgeColor($status) {
         return match(strtolower($status)) {
         'normal' => '#28a745',
@@ -189,7 +190,9 @@
         default => '#6c757d'
         };
         }
+        }
 
+        if (!function_exists('riskIcon')) {
         function riskIcon($status) {
         return match(strtolower($status)) {
         'normal' => '😄',
@@ -198,7 +201,7 @@
         default => '❓'
         };
         }
-
+        }
         $cf = $data_diagnosa[0]['nilai_cf'] ?? 0;
         @endphp
 
@@ -214,7 +217,7 @@
 
         <!-- Main Card -->
         <div class="container">
-            <div class="card">
+            <div class="card" id="print-area">
                 <div class="card-header">
                     <h2>Hasil Assessment</h2>
                     <p>Berdasarkan jawaban Anda, berikut adalah hasil penilaian kesehatan mental anak/remaja:</p>
@@ -320,12 +323,46 @@
                 @endif
 
                 <div class="footer-actions">
-                    <!-- <a href="#" class="btn btn-primary">Cetak PDF</a> -->
+                    <button onclick="printAssessment()" class="btn btn-primary">🖨️ Cetak</button>
                     <a href="/" class="btn btn-secondary">Kembali</a>
                 </div>
             </div>
         </div>
 
     </body>
+    <script>
+        function printAssessment() {
+            const content = document.getElementById('print-area').innerHTML;
+            const printWindow = window.open('', '', 'width=800,height=1000');
+            printWindow.document.write(`
+        <html>
+        <head>
+            <title>Cetak Hasil Assessment</title>
+            <style>
+                body {
+                    font-family: 'Segoe UI', sans-serif;
+                    color: #333;
+                    padding: 20px;
+                }
+                .score-card, .section-box {
+                    border: 1px solid #ddd;
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    border-radius: 10px;
+                }
+                .score-value {
+                    font-size: 22px;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body onload="window.print(); setTimeout(() => window.close(), 500);">
+            ${content}
+        </body>
+        </html>
+    `);
+            printWindow.document.close();
+        }
+    </script>
 
     </html>

@@ -541,8 +541,6 @@ class DiagnosaController extends Controller
         return "Tidak diketahui";
     }
 
-
-
     public function cetakPdf($id)
     {
         $diagnosa = Diagnosa::with(['alternatif', 'detail'])->findOrFail($id);
@@ -556,9 +554,10 @@ class DiagnosaController extends Controller
             'diagnosa_id' => $diagnosa->id
         ];
 
-        $pdf = Pdf::loadView('pages.diagnosa.cetak_pdf', $data)->setPaper('a4');
+        $pdf = Pdf::loadView('hasil_assessment_pdf', $data)->setPaper('a4');
 
-        return $pdf->stream('hasil-assessment-' . $diagnosa->alternatif->nama . '.pdf');
+        return  dd(Diagnosa::find($id));
+        // $pdf->stream('hasil-assessment-' . $diagnosa->alternatif->nama . '.pdf');
     }
 
     /**
