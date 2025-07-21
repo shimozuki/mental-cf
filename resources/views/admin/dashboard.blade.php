@@ -5,9 +5,9 @@
 @section('admin_content')
 <style>
   .card .filter {
-      position: absolute;
-      right: 15px;
-      top: 15px;
+    position: absolute;
+    right: 15px;
+    top: 15px;
   }
 </style>
 
@@ -26,7 +26,7 @@
 
   <section class="section dashboard">
     <div class="row">
-
+      @if(Auth::user()->role == 1 || Auth::user()->role == 2)
       <!-- Left side columns -->
       <div class="col-lg-12">
         <div class="row">
@@ -128,58 +128,63 @@
 
 
           <div class="col-12">
-  <div class="card">
-    {{-- FILTER DROPDOWN --}}
-    <div class="filter">
-      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#filterModal">Filter Tanggal</a></li>
-      </ul>
-    </div>
+            <div class="card">
+              {{-- FILTER DROPDOWN --}}
+              <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                  <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#filterModal">Filter Tanggal</a></li>
+                </ul>
+              </div>
 
-    <div class="card-body">
-      <h5 class="card-title">Grafik Skrining <span>| Bulanan</span></h5>
-      <canvas id="skriningChart" width="800" height="300"></canvas>
-    </div>
-  </div>
-</div>
-
-{{-- MODAL FILTER TANGGAL --}}
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <form method="GET" action="{{ route('dashboard') }}">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="filterModalLabel">Filter Tanggal</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="start_date" class="form-label">Tanggal Mulai</label>
-              <input type="date" class="form-control" name="start_date" id="start_date" required>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="end_date" class="form-label">Tanggal Selesai</label>
-              <input type="date" class="form-control" name="end_date" id="end_date" required>
+              <div class="card-body">
+                <h5 class="card-title">Grafik Skrining <span>| Bulanan</span></h5>
+                <canvas id="skriningChart" width="800" height="300"></canvas>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Terapkan</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
+
+          {{-- MODAL FILTER TANGGAL --}}
+          <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+              <form method="GET" action="{{ route('dashboard') }}">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLabel">Filter Tanggal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label for="start_date" class="form-label">Tanggal Mulai</label>
+                        <input type="date" class="form-control" name="start_date" id="start_date" required>
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label for="end_date" class="form-label">Tanggal Selesai</label>
+                        <input type="date" class="form-control" name="end_date" id="end_date" required>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Terapkan</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
 
 
         </div>
       </div><!-- End Left side columns -->
-
-
-
     </div>
+    @else
+    <div class="col-lg-12">
+      <div class="alert alert-info" role="alert">
+        Selamat datang di dashboard! Anda dapat melihat informasi terkait gejala dan hasil skrining.
+      </div>
+    </div>
+    @endif
+    <!-- End Right side columns -->
   </section>
 
 </main><!-- End #main -->
@@ -189,35 +194,38 @@
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const ctx = document.getElementById('skriningChart');
-        if (ctx) {
-            new Chart(ctx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($labels) !!},
-                    datasets: [{
-                        label: 'Jumlah Skrining',
-                        data: {!! json_encode($data) !!},
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    }
-                }
-            });
+  document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('skriningChart');
+    if (ctx) {
+      new Chart(ctx.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: {
+            !!json_encode($labels) !!
+          },
+          datasets: [{
+            label: 'Jumlah Skrining',
+            data: {
+              !!json_encode($data) !!
+            },
+            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
         }
-    });
+      });
+    }
+  });
 </script>
 @endpush
-

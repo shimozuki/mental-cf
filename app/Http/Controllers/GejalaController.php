@@ -82,13 +82,17 @@ class GejalaController extends Controller
      */
     public function update(UpdateGejalaRequest $request, Gejala $gejala)
     {
-        $valid = $request->validate([
-            "gejala" => "required"
+        $validated = $request->validate([
+            'gejala' => 'required',
         ]);
-        $gejala->update($valid);
-        return redirect()->route('gejala.index')->with('pesan', '<div class="alert alert-info p-3 mt-3" role="alert">
-        Gejala telah diperbarui
-        </div>');
+
+        $gejala->update($validated);
+
+        return redirect()->route('gejala.index')->with('pesan', '
+        <div class="alert alert-info p-3 mt-3" role="alert">
+            Gejala telah diperbarui
+        </div>
+    ');
     }
 
     /**

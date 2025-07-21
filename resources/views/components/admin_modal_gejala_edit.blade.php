@@ -7,8 +7,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="edit-gejala" action="" method="post">
-          @method('put')
+        <form id="edit-gejala" method="POST" onsubmit="return beforeSubmitGejala(event)">
+          @method('PUT')
           @csrf
           <input type="hidden" name="id" id="edit_id_gejala">
 
@@ -22,14 +22,14 @@
             <input type="text" class="form-control" id="edit_gejala" name="gejala">
           </div>
 
-          <div class="mb-3">
+          <!-- <div class="mb-3">
             <label for="edit_rentang_usia" class="form-label">Rentang Usia</label>
             <select class="form-select" id="edit_rentang_usia" name="rentang_usia" required>
               <option value="" disabled>-- Pilih Rentang Usia --</option>
               <option value="4-10">4–10 Tahun</option>
               <option value="11-18">11–18 Tahun</option>
             </select>
-          </div>
+          </div> -->
 
           <!-- <div class="mb-3">
             <label for="edit_kategori_sdq" class="form-label">Kategori SDQ</label>
@@ -82,14 +82,14 @@
             <input type="text" class="form-control" id="gejala" name="gejala" placeholder="Masukkan nama gejala" required>
           </div>
 
-          <div class="mb-3">
+          <!-- <div class="mb-3">
             <label for="rentang_usia" class="form-label">Rentang Usia</label>
             <select class="form-select" id="rentang_usia" name="rentang_usia" required>
               <option value="" disabled selected>-- Pilih Rentang Usia --</option>
               <option value="4-10">4–10 Tahun</option>
               <option value="11-18">11–18 Tahun</option>
             </select>
-          </div>
+          </div> -->
 
           <!-- <div class="mb-3">
             <label for="kategori_sdq" class="form-label">Kategori Kriteria</label>
@@ -120,7 +120,10 @@
 {{-- end modal tambah gejala --}}
 
 <script>
+  let currentGejalaId = null;
+
   function updateInput(idGejala, kode, gejala, rentangUsia, kategoriSDQ) {
+    currentGejalaId = idGejala;
     document.getElementById("edit_id_gejala").value = idGejala;
     document.getElementById("edit_kode_gejala").value = kode;
     document.getElementById("edit_gejala").value = gejala;
@@ -128,12 +131,19 @@
     document.getElementById("edit_kategori_sdq").value = kategoriSDQ;
   }
 
+  function beforeSubmitGejala(e) {
+    const form = document.getElementById('edit-gejala');
+    if (currentGejalaId) {
+      form.action = `/gejala/${currentGejalaId}`;
+      console.log("✅ Setting action ke:", form.action);
+      return true; // lanjut submit
+    } else {
+      alert("⚠️ ID gejala tidak ditemukan.");
+      return false; // stop submit
+    }
+  }
 
-
-  function actionUbahGejala(params) {
-    const formGejala = document.getElementById('edit-gejala');
-    formGejala.setAttribute('action', params);
-    formGejala.setAttribute('method', 'POST');
-    console.log(formGejala);
+  function handleEditGejala(id, kode, gejala, rentangUsia, kategoriSDQ) {
+    updateInput(id, kode, gejala, rentangUsia, kategoriSDQ);
   }
 </script>

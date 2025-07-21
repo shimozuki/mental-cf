@@ -48,7 +48,6 @@
                                             <th scope="col">#</th>
                                             <th scope="col">Kode Gejala</th>
                                             <th scope="col">Gejala</th>
-                                            <th scope="col">Rentang Usia</th>
                                             <th scope="col">Aksi</th>
                                         </tr>
                                     </thead>
@@ -58,19 +57,18 @@
                                             <th scope="row">{{ $loop->iteration + $gejala->firstItem() -1 }}</th>
                                             <td>{{$item->kode_gejala}}</td>
                                             <td>{{$item->gejala}}</td>
-                                            <td>{{$item->rentang_usia}}</td>
                                             <td>
                                                 <button
                                                     class="btn btn-outline-info"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#exampleModal"
-                                                    onclick="updateInput(
-                                '{{ $item->id }}',
-                                '{{ $item->kode_gejala }}',
-                                '{{ $item->gejala }}',
-                                '{{ $item->rentang_usia }}',
-                                '{{ $item->kategori_sdq }}'
-                            ); actionUbahGejala('/gejala/{{ $item->id }}')">
+                                                    onclick="handleEditGejala(
+        '{{ $item->id }}',
+        '{{ $item->kode_gejala }}',
+        '{{ $item->gejala }}',
+        '{{ $item->rentang_usia }}',
+        '{{ $item->kategori_sdq }}'
+    )">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </button>
 
