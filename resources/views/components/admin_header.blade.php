@@ -157,9 +157,19 @@
       </li><!-- End Messages Nav -->
 
       <li class="nav-item dropdown pe-3">
-
+        @php
+        $roleImages = [
+        1 => 'admin.png',
+        2 => 'psikolog.png',
+        3 => 'user.png',
+        ];
+        // ambil nama file, atau fallback kalau role nggak terdaftar
+        $imgFile = $roleImages[ auth()->user()->role ] ?? 'default.png';
+        @endphp
         <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-          <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
+          <img src="{{ asset($imgFile) }}"
+            alt="Profile"
+            class="rounded-circle">
           <span class="d-none d-md-block dropdown-toggle ps-2">
             <h6>{{ auth()->check() ? auth()->user()->name : 'Admin' }}</h6>
           </span>
@@ -167,11 +177,31 @@
 
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
           <li class="dropdown-header">
-            <h6>
-              <h6>{{ auth()->check() ? auth()->user()->name : 'Admin' }}</h6>
-            </h6>
-            <span>Dokter</span>
+            {{-- Nama user --}}
+            <h6>{{ auth()->check() ? auth()->user()->name : 'Admin' }}</h6>
+
+            {{-- Label role sesuai mapping: 1=Admin, 2=Psikolog, 3=Wali --}}
+            <span>
+              @if(auth()->check())
+              @switch(auth()->user()->role)
+              @case(1)
+              Admin
+              @break
+              @case(2)
+              Psikolog
+              @break
+              @case(3)
+              Wali
+              @break
+              @default
+              User
+              @endswitch
+              @else
+              Admin
+              @endif
+            </span>
           </li>
+
         </ul><!-- End Profile Dropdown Items -->
       </li><!-- End Profile Nav -->
 
