@@ -89,7 +89,7 @@
                 <li>
                     <a class="shadow-hover curent-shadow" href="#">Menu</a>
                     <ul>
-                        <li><a href="/form-faq">Diagnosa</a></li>
+                        <li><a href="/form">Diagnosa</a></li>
                         <li><a href="/gejala">Gejala</a></li>
                         <li><a href="/depresi">Skrining</a></li>
                     </ul>
